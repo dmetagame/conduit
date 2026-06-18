@@ -1,0 +1,16 @@
+[package]
+name = "conduit"
+edition = "2024"         # edition = "legacy" to use legacy (pre-2024) Move
+# license = ""           # e.g., "MIT", "GPL", "Apache 2.0"
+# authors = ["..."]      # e.g., ["Joe Smith (joesmith@noemail.com)", "John Snow (johnsnow@noemail.com)"]
+
+[dependencies]
+deepbook = { git = "https://github.com/MystenLabs/deepbookv3.git", subdir = "packages/deepbook", rev = "main" }
+# `token` (the DEEP package) is declared directly so token::deep::DEEP is in scope
+# for the FX leg. Published IDs for deploy:
+#   DEEP token (mainnet): 0xdeeb7a4662eec9f2f3def03fb937a663dddaa2e215b8078a284d026b7946c270
+#   DEEP token (testnet): 0x36dbef866a1d62bf7328989a10fb2f07d769f4ee587c0de4a0a256e57e0a58a8
+token = { git = "https://github.com/MystenLabs/deepbookv3.git", subdir = "packages/token", rev = "main" }
+
+# Read more about the package management system options:
+# https://docs.sui.io/guides/developer/packages/move-package-management

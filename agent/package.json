@@ -1,0 +1,26 @@
+{
+  "name": "conduit-agent",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Off-chain operator for Conduit: discovers due payment rules, uploads a Walrus receipt, and settles the payout on Sui.",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "agent": "tsx src/index.ts",
+    "agent:once": "tsx src/index.ts --once"
+  },
+  "dependencies": {
+    "@mysten/sui": "1.37.6",
+    "@mysten/walrus": "^0.6.0",
+    "dotenv": "^16.4.5"
+  },
+  "overrides": {
+    "@mysten/sui": "1.37.6"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  }
+}

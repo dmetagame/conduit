@@ -1,0 +1,47 @@
+name: Conduit settlement agent
+
+# Runs the off-chain operator on a schedule so settlement does not depend on a
+# laptop being open. Each run does one tick: discover due rules, upload a Walrus
+# receipt, settle the payout. State lives on-chain, so a missed run just settles
+# on the next one.
+
+on:
+  schedule:
+    # Every 5 minutes — GitHub's minimum granularity. Scheduled runs can be
+    # delayed a few minutes under load; that's fine, rules stay due until settled.
+    - cron: '*/5 * * * *'
+  workflow_dispatch: {} # manual "Run workflow" button for on-demand / demo settlement
+
+# Never let two ticks overlap (double-spend protection at the runner level; the
+# contract's due-check is the real guard, this just avoids wasted gas).
+concurrency:
+  group: conduit-agent
+  cancel-in-progress: false
+
+jobs:
+  settle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: agent
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: agent/package-lock.json
+
+      - run: npm ci
+
+      - name: Settle due rules (one tick)
+        run: npm run agent:once
+        env:
+          SUI_NETWORK: testnet
+          # Public on-chain ids — safe to commit. The signer key is the only secret.
+          CONDUIT_PACKAGE_ID: '0x1b4c89db10e2d5a6f97b56796d00de44e9b6dc4d49079547003fb82c1c829433'
+          CONDUIT_TREASURY_ID: '0xb5e08e3e8d9cf7fb23ee29179f395b0868cf9957953e42ca0eca87ed68534626'
+          WALRUS_EPOCHS: '3'
+          SUI_AGENT_SECRET_KEY: ${{ secrets.SUI_AGENT_SECRET_KEY }}

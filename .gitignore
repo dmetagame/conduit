@@ -1,0 +1,13 @@
+build/*
+traces/*
+.trace
+.coverage*
+Pub.*.toml
+
+# Node / secrets (belt-and-suspenders over per-package .gitignores)
+**/node_modules/
+**/dist/
+**/.env
+**/.env.local
+**/.env.*.local
+*.log
