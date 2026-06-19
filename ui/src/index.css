@@ -5,6 +5,10 @@
   --text: #e6edf3;
   --muted: #8aa0b4;
   --accent: #4cc2ff;
+  --accent-2: #7b61ff;
+  --font-display: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
   color-scheme: dark;
 }
 
@@ -14,7 +18,8 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
 }
 
 .app {
@@ -31,12 +36,15 @@ body {
   margin-bottom: 16px;
 }
 
-h1 { margin: 0; font-size: 24px; }
+h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.01em; }
+h1 { margin: 0; font-size: 24px; letter-spacing: -0.02em; }
 h2 { margin: 24px 0 12px; font-size: 18px; }
 h3 { margin: 0 0 10px; font-size: 15px; }
 
 .muted { color: var(--muted); font-size: 13px; }
-.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.mono { font-family: var(--font-mono); }
+
+button, input { font-family: inherit; }
 
 .banner {
   background: #1b2a1b;
@@ -114,3 +122,85 @@ a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; }
 
 footer { margin-top: 32px; }
+
+/* ── Brand lockup ──────────────────────────────────────────────────────────── */
+.brand { display: inline-flex; }
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  line-height: 1;
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.logo__mark { display: inline-flex; }
+.logo__word { font-family: var(--font-display); font-weight: 600; letter-spacing: -0.02em; }
+.logo__char { display: inline-block; }
+.logo--gradient .logo__mark { color: var(--accent); }
+.logo--gradient .logo__word {
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ── Ambient hero glow (echoes the rails motif; subtle, GPU-friendly) ───────── */
+.app { position: relative; }
+.hero-glow {
+  position: absolute;
+  top: -90px;
+  left: 50%;
+  width: 620px;
+  max-width: 90vw;
+  height: 320px;
+  transform: translateX(-50%);
+  background: radial-gradient(closest-side, rgba(76, 194, 255, 0.10), rgba(123, 97, 255, 0.05) 55%, transparent 72%);
+  filter: blur(18px);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* ── Micro-interactions (gated by reduced-motion) ──────────────────────────── */
+input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(76, 194, 255, 0.15);
+}
+
+/* In-app links use an animated underline sweep instead of the default underline;
+   links inside dapp-kit's portal'd modal keep the baseline hover above. */
+.app a { position: relative; }
+.app a:hover { text-decoration: none; }
+.app a::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+}
+.app a:hover::after { transform: scaleX(1); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .card { transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease; }
+  .card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(76, 194, 255, 0.5);
+    box-shadow: 0 6px 24px -12px rgba(76, 194, 255, 0.45);
+  }
+  button { transition: transform 0.12s ease, filter 0.12s ease; }
+  button:not(:disabled):hover { filter: brightness(1.08); }
+  button:not(:disabled):active { transform: translateY(1px) scale(0.99); }
+  input { transition: border-color 0.15s ease, box-shadow 0.15s ease; }
+  .app a::after { transition: transform 0.2s ease; }
+}
+
+/* Reduced motion: no underline sweep, fall back to a plain underline on hover. */
+@media (prefers-reduced-motion: reduce) {
+  .app a::after { display: none; }
+  .app a:hover { text-decoration: underline; }
+}

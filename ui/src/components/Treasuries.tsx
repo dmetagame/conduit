@@ -1,9 +1,12 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import {
   useCurrentAccount,
   useSignAndExecuteTransaction,
   useSuiClientQuery,
 } from '@mysten/dapp-kit';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { useGSAP } from '@gsap/react';
 import { PACKAGE_ID } from '../config';
 import {
   addRuleTx,
@@ -12,9 +15,13 @@ import {
   depositTx,
   shortId,
 } from '../lib/conduit';
+import { countUp, DUR, EASE } from '../lib/animations';
+
+gsap.registerPlugin(ScrollTrigger);
 
 export function Treasuries() {
   const account = useCurrentAccount();
+  const root = useRef<HTMLElement>(null);
   const caps = useSuiClientQuery(
     'getOwnedObjects',
     {
@@ -25,8 +32,44 @@ export function Treasuries() {
     { enabled: !!PACKAGE_ID && !!account },
   );
 
+  // Reveal the heading on scroll and stagger cards in as they mount (incl. async-loaded
+  // treasury rows). Only un-animated cards are touched, so polling never re-runs the list.
+  useGSAP(
+    () => {
+      const mm = gsap.matchMedia();
+      mm.add('(prefers-reduced-motion: no-preference)', () => {
+        const h2 = root.current?.querySelector('h2');
+        if (h2) {
+          gsap.from(h2, {
+            y: 16,
+            opacity: 0,
+            duration: DUR.base,
+            ease: EASE,
+            scrollTrigger: { trigger: h2, start: 'top 85%', once: true },
+          });
+        }
+        const fresh = gsap.utils
+          .toArray<HTMLElement>('.card', root.current)
+          .filter((c) => !c.dataset.animated);
+        fresh.forEach((c) => (c.dataset.animated = 'true'));
+        if (fresh.length) {
+          gsap.from(fresh, {
+            y: 24,
+            opacity: 0,
+            duration: DUR.base,
+            ease: EASE,
+            stagger: 0.08,
+            onComplete: () => ScrollTrigger.refresh(),
+          });
+        }
+      });
+      return () => mm.revert();
+    },
+    { scope: root, dependencies: [caps.data] },
+  );
+
   return (
-    <section>
+    <section ref={root}>
       <h2>Your treasuries</h2>
       <CreateTreasury onCreated={() => void caps.refetch()} />
       {caps.isPending && <p className="muted">Loading…</p>}
@@ -75,6 +118,8 @@ function CreateTreasury({ onCreated }: { onCreated: () => void }) {
 }
 
 function TreasuryRow({ capId, treasuryId }: { capId: string; treasuryId: string }) {
+  const root = useRef<HTMLDivElement>(null);
+  const balRef = useRef<HTMLElement>(null);
   const obj = useSuiClientQuery('getObject', {
     id: treasuryId,
     options: { showType: true, showContent: true },
@@ -87,12 +132,30 @@ function TreasuryRow({ capId, treasuryId }: { capId: string; treasuryId: string 
   const balance =
     typeof fundsField === 'object' ? (fundsField?.fields?.value ?? '0') : (fundsField ?? '0');
 
+  // Count the balance up from 0 → value (display only). Re-runs only when the balance
+  // actually changes (e.g. after a deposit), not on unrelated re-renders.
+  useGSAP(
+    () => {
+      const el = balRef.current;
+      if (!el) return;
+      const mm = gsap.matchMedia();
+      mm.add('(prefers-reduced-motion: no-preference)', () => {
+        countUp(el, Number(balance));
+      });
+      mm.add('(prefers-reduced-motion: reduce)', () => {
+        el.textContent = String(balance);
+      });
+      return () => mm.revert();
+    },
+    { scope: root, dependencies: [balance] },
+  );
+
   return (
-    <div className="card">
+    <div className="card" ref={root}>
       <h3>Treasury {shortId(treasuryId)}</h3>
       <p className="muted mono">{coinType || '—'}</p>
       <p>
-        Balance: <strong>{String(balance)}</strong>
+        Balance: <strong ref={balRef}>{String(balance)}</strong>
       </p>
       <DepositForm
         treasuryId={treasuryId}
