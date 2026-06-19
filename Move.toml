@@ -5,7 +5,11 @@ edition = "2024"         # edition = "legacy" to use legacy (pre-2024) Move
 # authors = ["..."]      # e.g., ["Joe Smith (joesmith@noemail.com)", "John Snow (johnsnow@noemail.com)"]
 
 [dependencies]
-deepbook = { git = "https://github.com/MystenLabs/deepbookv3.git", subdir = "packages/deepbook", rev = "main" }
+# Vendored locally so we can pin DeepBook's testnet published-at to the CURRENT
+# enabled package (0x22be4c…). The upstream repo's Published.toml still points
+# testnet at the now-version-disabled 0x74cd56…, which aborts swaps with
+# EPackageVersionDisabled. Source is deepbookv3 @ daa5a951; only Published.toml differs.
+deepbook = { local = "vendor/deepbook" }
 # `token` (the DEEP package) is declared directly so token::deep::DEEP is in scope
 # for the FX leg. Published IDs for deploy:
 #   DEEP token (mainnet): 0xdeeb7a4662eec9f2f3def03fb937a663dddaa2e215b8078a284d026b7946c270
