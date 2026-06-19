@@ -60,11 +60,11 @@ jobs:
       - name: Install Sui CLI
         if: steps.cache-sui.outputs.cache-hit != 'true'
         run: |
-          mkdir -p ~/.local/bin
+          mkdir -p ~/.local/bin /tmp/suidl
           curl -fsSL -o /tmp/sui.tgz \
             "https://github.com/MystenLabs/sui/releases/download/${SUI_VERSION}/sui-${SUI_VERSION}-ubuntu-x86_64.tgz"
-          tar -xzf /tmp/sui.tgz -C /tmp
-          find /tmp -maxdepth 3 -type f -name sui -exec mv {} "$HOME/.local/bin/sui" \;
+          tar -xzf /tmp/sui.tgz -C /tmp/suidl --no-same-owner
+          find /tmp/suidl -maxdepth 3 -type f -name sui -exec mv {} "$HOME/.local/bin/sui" \;
           chmod +x "$HOME/.local/bin/sui"
       - name: Add Sui to PATH
         run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
