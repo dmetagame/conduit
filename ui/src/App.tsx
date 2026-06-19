@@ -6,6 +6,7 @@ import { NETWORK, PACKAGE_ID } from './config';
 import { Treasuries } from './components/Treasuries';
 import { PaymentsFeed } from './components/PaymentsFeed';
 import { Logo } from './components/Logo';
+import { Landing } from './components/Landing';
 import { useSmoothScroll } from './hooks/useSmoothScroll';
 import { EASE } from './lib/animations';
 
@@ -65,9 +66,7 @@ export function App() {
       )}
 
       {!account ? (
-        <div className="card">
-          <p>Connect a wallet to create and manage treasuries.</p>
-        </div>
+        <Landing />
       ) : (
         <>
           <Treasuries />
