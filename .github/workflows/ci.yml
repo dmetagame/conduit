@@ -69,5 +69,5 @@ jobs:
       - name: Add Sui to PATH
         run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
       - run: sui --version
-      - run: sui move build --skip-fetch-latest-git-deps
-      - run: sui move test --skip-fetch-latest-git-deps
+      - run: sui move build
+      - run: sui move test
