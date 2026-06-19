@@ -6,6 +6,8 @@
 
 *Sui Overflow 2026 submission.*
 
+**🔗 Live demo:** [conduit-ui-seven.vercel.app](https://conduit-ui-seven.vercel.app) · **Repo:** [github.com/dmetagame/conduit](https://github.com/dmetagame/conduit) · network: **Sui testnet** (connect a testnet wallet to author rules; the payments feed is public)
+
 ---
 
 ## The problem
