@@ -6,6 +6,16 @@
 
 *Sui Overflow 2026 submission.*
 
+[![CI](https://github.com/dmetagame/conduit/actions/workflows/ci.yml/badge.svg)](https://github.com/dmetagame/conduit/actions/workflows/ci.yml)
+[![Settlement agent](https://github.com/dmetagame/conduit/actions/workflows/conduit-agent.yml/badge.svg)](https://github.com/dmetagame/conduit/actions/workflows/conduit-agent.yml)
+[![Live demo](https://img.shields.io/badge/demo-live-2ecc71)](https://conduit-ui-seven.vercel.app)
+![Sui](https://img.shields.io/badge/Sui-testnet-6fbcf0)
+![Move 2024](https://img.shields.io/badge/Move-2024-4cc2ff)
+![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript&logoColor=white)
+![Walrus](https://img.shields.io/badge/Walrus-receipts-7b61ff)
+![DeepBook](https://img.shields.io/badge/DeepBook-v3-4cc2ff)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
+
 **🔗 Live demo:** [conduit-ui-seven.vercel.app](https://conduit-ui-seven.vercel.app) · **Repo:** [github.com/dmetagame/conduit](https://github.com/dmetagame/conduit) · network: **Sui testnet** (connect a testnet wallet to author rules; the payments feed is public)
 
 ---
