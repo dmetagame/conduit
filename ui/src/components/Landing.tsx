@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { Fragment, useRef } from 'react';
 import { ConnectButton } from '@mysten/dapp-kit';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -181,9 +181,9 @@ export function Landing() {
           </span>
           <h1 className="hero-title">
             {'Programmable settlement rails for USDC on Sui'.split(' ').map((w, i) => (
-              <span className="word" key={i}>
-                {w}{' '}
-              </span>
+              <Fragment key={i}>
+                <span className="word">{w}</span>{' '}
+              </Fragment>
             ))}
           </h1>
           <p className="hero-sub">
