@@ -84,21 +84,30 @@ Three components, one repo:
 
 Everything below is real and verifiable on testnet — not a mock.
 
+**Stablecoin proof:** a real **Circle USDC** payout settled end-to-end —
+`execute_payout<…::usdc::USDC>`, with its own Walrus receipt. The "USDC rails" claim is
+proven on-chain, not just intended.
+
 | Thing | Id |
 | --- | --- |
 | Package (original id) | [`0x1b4c89db…c829433`](https://suiscan.xyz/testnet/object/0x1b4c89db10e2d5a6f97b56796d00de44e9b6dc4d49079547003fb82c1c829433) |
 | Latest version (links live DeepBook) | `0x057871e0…8c680eb` |
-| Treasury (SUI) | [`0xb5e08e3e…8534626`](https://suiscan.xyz/testnet/object/0xb5e08e3e8d9cf7fb23ee29179f395b0868cf9957953e42ca0eca87ed68534626) |
-| Example settlement tx (settled by the cron) | [`74QQyXXw…id5dF`](https://suiscan.xyz/testnet/tx/74QQyXXw9MxfUvhEkex16PPVrJsJ8jRn6zCKsryid5dF) |
-| Walrus receipt blob (from that settlement) | `MB7ujHGD-OKW41p3xnNp-PUeaBeYWjbjFy-capSs8KY` |
+| **USDC settlement tx** (5 USDC, `execute_payout<USDC>`) | [`22kQEtEw…LHvV`](https://suiscan.xyz/testnet/tx/22kQEtEweY32xJ6cASatBToDoxqwJPaJXUoJhxpmLHvV) |
+| **USDC** treasury | [`0x1e1a20c5…36b562`](https://suiscan.xyz/testnet/object/0x1e1a20c5da4deb6c8f21c429cfb711e418c53a8fda04d607f3f18cd31936b562) |
+| USDC Walrus receipt blob | [`tuCmC-UUJMolOl3Q_c4WvJ2ceUzBtXalnyNf9VwTXFM`](https://aggregator.walrus-testnet.walrus.space/v1/blobs/tuCmC-UUJMolOl3Q_c4WvJ2ceUzBtXalnyNf9VwTXFM) |
+| SUI settlement tx (settled by the cron) | [`74QQyXXw…id5dF`](https://suiscan.xyz/testnet/tx/74QQyXXw9MxfUvhEkex16PPVrJsJ8jRn6zCKsryid5dF) |
+| SUI treasury | [`0xb5e08e3e…8534626`](https://suiscan.xyz/testnet/object/0xb5e08e3e8d9cf7fb23ee29179f395b0868cf9957953e42ca0eca87ed68534626) |
+| SUI Walrus receipt blob | [`MB7ujHGD-OKW41p3xnNp-PUeaBeYWjbjFy-capSs8KY`](https://aggregator.walrus-testnet.walrus.space/v1/blobs/MB7ujHGD-OKW41p3xnNp-PUeaBeYWjbjFy-capSs8KY) |
 
-The receipt is a JSON blob (`conduit/receipt@1`) reconstructable with `walrus read <blobId>`:
+Each receipt is a JSON blob (`conduit/receipt@1`) reconstructable with `walrus read <blobId>` —
+the actual USDC receipt:
 
 ```json
 { "schema": "conduit/receipt@1", "network": "testnet",
-  "treasury": "0xb5e0…", "rule": "0x…", "payee": "0x224a…",
-  "amount": "10000000", "coinType": "0x2::sui::SUI",
-  "scheduledForMs": 0, "settledAtMs": 1781723513767 }
+  "treasury": "0x1e1a20c5…36b562", "rule": "0x160b9306…ab4b61bf",
+  "payee": "0x224a01864a05…01c2b", "amount": "5000000",
+  "coinType": "0xa1ec7f…::usdc::USDC",
+  "scheduledForMs": 1782030777425, "settledAtMs": 1782030817228 }
 ```
 
 ## Track fit
