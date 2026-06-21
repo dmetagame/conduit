@@ -189,26 +189,39 @@ function DepositForm({
   coinType: string;
   onDone: () => void;
 }) {
+  const account = useCurrentAccount();
   const { mutateAsync, isPending } = useSignAndExecuteTransaction();
   const [amount, setAmount] = useState('1000000000');
-  const [coinId, setCoinId] = useState('');
   const isSui = coinType === '0x2::sui::SUI';
+
+  // For non-SUI assets the deposit must come from an owned coin object. Resolve it
+  // automatically (largest balance) so both SUI and non-SUI cards have the same simple
+  // {amount + button} form — no manual coin-id paste.
+  const coins = useSuiClientQuery(
+    'getCoins',
+    { owner: account?.address ?? '', coinType },
+    { enabled: !isSui && !!account && !!coinType },
+  );
+  const sourceCoinId = isSui
+    ? undefined
+    : coins.data?.data
+        .slice()
+        .sort((a, b) => (BigInt(b.balance) > BigInt(a.balance) ? 1 : -1))[0]?.coinObjectId;
+  const noCoin = !isSui && coins.isFetched && !sourceCoinId;
 
   return (
     <div className="subform">
       <strong>Deposit</strong>
       <input value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="amount (base units)" />
-      {!isSui && (
-        <input value={coinId} onChange={(e) => setCoinId(e.target.value)} placeholder="owned coin object id" />
-      )}
+      {noCoin && <span className="muted" style={{ fontSize: 12 }}>No coin of this type in wallet.</span>}
       <button
-        disabled={isPending || !coinType}
+        disabled={isPending || !coinType || noCoin}
         onClick={async () => {
           await mutateAsync({
             transaction: depositTx(PACKAGE_ID, coinType, {
               treasury: treasuryId,
               amount: BigInt(amount),
-              coinId: coinId || undefined,
+              coinId: sourceCoinId,
             }),
           });
           onDone();
