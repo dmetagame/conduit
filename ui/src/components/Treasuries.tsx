@@ -17,6 +17,7 @@ import {
   shortCoinType,
   shortId,
   symbolFromCoinType,
+  toBaseUnits,
 } from '../lib/conduit';
 import { countUp, DUR, EASE } from '../lib/animations';
 
@@ -173,25 +174,41 @@ function TreasuryRow({ capId, treasuryId }: { capId: string; treasuryId: string 
       <DepositForm
         treasuryId={treasuryId}
         coinType={coinType}
+        decimals={decimals}
+        symbol={symbol}
         onDone={() => void obj.refetch()}
       />
-      <AddRuleForm capId={capId} treasuryId={treasuryId} coinType={coinType} />
+      <AddRuleForm
+        capId={capId}
+        treasuryId={treasuryId}
+        coinType={coinType}
+        decimals={decimals}
+        symbol={symbol}
+      />
     </div>
   );
 }
 
+// Leave a little SUI behind to pay for the deposit gas itself.
+const SUI_GAS_BUFFER = 50_000_000n; // 0.05 SUI
+
 function DepositForm({
   treasuryId,
   coinType,
+  decimals,
+  symbol,
   onDone,
 }: {
   treasuryId: string;
   coinType: string;
+  decimals: number;
+  symbol: string;
   onDone: () => void;
 }) {
   const account = useCurrentAccount();
   const { mutateAsync, isPending } = useSignAndExecuteTransaction();
-  const [amount, setAmount] = useState('1000000000');
+  const [amount, setAmount] = useState('');
+  const [error, setError] = useState('');
   const isSui = coinType === '0x2::sui::SUI';
 
   // For non-SUI assets the deposit must come from an owned coin object. Resolve it
@@ -202,31 +219,64 @@ function DepositForm({
     { owner: account?.address ?? '', coinType },
     { enabled: !isSui && !!account && !!coinType },
   );
-  const sourceCoinId = isSui
-    ? undefined
-    : coins.data?.data
-        .slice()
-        .sort((a, b) => (BigInt(b.balance) > BigInt(a.balance) ? 1 : -1))[0]?.coinObjectId;
+  const sorted = coins.data?.data
+    .slice()
+    .sort((a, b) => (BigInt(b.balance) > BigInt(a.balance) ? 1 : -1));
+  const sourceCoinId = isSui ? undefined : sorted?.[0]?.coinObjectId;
   const noCoin = !isSui && coins.isFetched && !sourceCoinId;
+
+  // Spendable wallet balance of this asset (SUI keeps a gas buffer; non-SUI uses the
+  // largest single coin, since deposit splits from one object).
+  const suiBal = useSuiClientQuery(
+    'getBalance',
+    { owner: account?.address ?? '' },
+    { enabled: isSui && !!account },
+  );
+  const available = isSui
+    ? (() => {
+        const b = BigInt(suiBal.data?.totalBalance ?? '0') - SUI_GAS_BUFFER;
+        return b > 0n ? b : 0n;
+      })()
+    : BigInt(sorted?.[0]?.balance ?? '0');
+
+  const base = toBaseUnits(amount, decimals);
+  const tooMuch = base !== null && base > available;
+  const ready = base !== null && !tooMuch && !noCoin && !!coinType;
+
+  async function onDeposit() {
+    setError('');
+    if (!ready || base === null) return;
+    try {
+      await mutateAsync({
+        transaction: depositTx(PACKAGE_ID, coinType, {
+          treasury: treasuryId,
+          amount: base,
+          coinId: sourceCoinId,
+        }),
+      });
+      setAmount('');
+      onDone();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Deposit failed');
+    }
+  }
 
   return (
     <div className="subform">
       <strong>Deposit</strong>
-      <input value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="amount (base units)" />
-      {noCoin && <span className="muted" style={{ fontSize: 12 }}>No coin of this type in wallet.</span>}
-      <button
-        disabled={isPending || !coinType || noCoin}
-        onClick={async () => {
-          await mutateAsync({
-            transaction: depositTx(PACKAGE_ID, coinType, {
-              treasury: treasuryId,
-              amount: BigInt(amount),
-              coinId: sourceCoinId,
-            }),
-          });
-          onDone();
-        }}
-      >
+      <input
+        value={amount}
+        onChange={(e) => setAmount(e.target.value)}
+        placeholder={`amount in ${symbol || 'tokens'}`}
+        inputMode="decimal"
+      />
+      <span className="muted" style={{ fontSize: 12 }}>
+        Available: {formatAmount(available, decimals)} {symbol}
+      </span>
+      {noCoin && <span className="form-error">No {symbol || 'coin'} in this wallet.</span>}
+      {tooMuch && <span className="form-error">Amount exceeds available balance.</span>}
+      {error && <span className="form-error">{error}</span>}
+      <button disabled={isPending || !ready} onClick={onDeposit}>
         {isPending ? 'Depositing…' : 'Deposit'}
       </button>
     </div>
@@ -237,22 +287,57 @@ function AddRuleForm({
   capId,
   treasuryId,
   coinType,
+  decimals,
+  symbol,
 }: {
   capId: string;
   treasuryId: string;
   coinType: string;
+  decimals: number;
+  symbol: string;
 }) {
   const { mutateAsync, isPending } = useSignAndExecuteTransaction();
   const [payee, setPayee] = useState('');
-  const [amount, setAmount] = useState('100000000');
+  const [amount, setAmount] = useState('');
   const [intervalSec, setIntervalSec] = useState('0');
   const [startInSec, setStartInSec] = useState('0');
+  const [error, setError] = useState('');
+
+  const base = toBaseUnits(amount, decimals);
+  const ready = !!payee.trim() && base !== null && !!coinType;
+
+  async function onAdd() {
+    setError('');
+    if (!ready || base === null) return;
+    try {
+      const startMs = BigInt(Date.now() + Number(startInSec) * 1000);
+      await mutateAsync({
+        transaction: addRuleTx(PACKAGE_ID, coinType, {
+          cap: capId,
+          treasury: treasuryId,
+          payee: payee.trim(),
+          amount: base,
+          intervalMs: BigInt(Number(intervalSec) * 1000),
+          startMs,
+        }),
+      });
+      setPayee('');
+      setAmount('');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Add rule failed');
+    }
+  }
 
   return (
     <div className="subform">
       <strong>Add payout rule</strong>
       <input value={payee} onChange={(e) => setPayee(e.target.value)} placeholder="payee address 0x…" />
-      <input value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="amount per payout" />
+      <input
+        value={amount}
+        onChange={(e) => setAmount(e.target.value)}
+        placeholder={`amount per payout in ${symbol || 'tokens'}`}
+        inputMode="decimal"
+      />
       <input
         value={intervalSec}
         onChange={(e) => setIntervalSec(e.target.value)}
@@ -263,23 +348,8 @@ function AddRuleForm({
         onChange={(e) => setStartInSec(e.target.value)}
         placeholder="first run in N seconds"
       />
-      <button
-        disabled={isPending || !payee || !coinType}
-        onClick={async () => {
-          const startMs = BigInt(Date.now() + Number(startInSec) * 1000);
-          await mutateAsync({
-            transaction: addRuleTx(PACKAGE_ID, coinType, {
-              cap: capId,
-              treasury: treasuryId,
-              payee: payee.trim(),
-              amount: BigInt(amount),
-              intervalMs: BigInt(Number(intervalSec) * 1000),
-              startMs,
-            }),
-          });
-          setPayee('');
-        }}
-      >
+      {error && <span className="form-error">{error}</span>}
+      <button disabled={isPending || !ready} onClick={onAdd}>
         {isPending ? 'Adding…' : 'Add rule'}
       </button>
     </div>

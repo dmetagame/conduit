@@ -91,6 +91,21 @@ export function formatAmount(raw: string | number | bigint, decimals: number): s
   return `${wholeStr}.${fracStr}`;
 }
 
+/** Parse a human decimal amount into base units, e.g. ("2.5", 6) → 2500000n. Returns null if invalid. */
+export function toBaseUnits(human: string, decimals: number): bigint | null {
+  const s = human.trim();
+  if (!s || !/^\d*\.?\d*$/.test(s) || s === '.') return null;
+  const [intPart = '0', fracPart = ''] = s.split('.');
+  if (fracPart.length > decimals) return null; // more precision than the coin supports
+  const frac = fracPart.padEnd(decimals, '0');
+  try {
+    const v = BigInt(intPart || '0') * 10n ** BigInt(decimals) + BigInt(frac || '0');
+    return v > 0n ? v : null;
+  } catch {
+    return null;
+  }
+}
+
 /** Short symbol for a coin type when metadata is unavailable, e.g. `0x2::sui::SUI` → "SUI". */
 export function symbolFromCoinType(coinType: string): string {
   const tail = coinType.split('::').pop() ?? coinType;

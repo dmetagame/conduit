@@ -80,6 +80,8 @@ button, input { font-family: inherit; }
   border-top: 1px solid var(--border);
 }
 
+.form-error { font-size: 12px; color: #ff8585; }
+
 label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
 
 input {
