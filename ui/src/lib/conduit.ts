@@ -96,3 +96,17 @@ export function symbolFromCoinType(coinType: string): string {
   const tail = coinType.split('::').pop() ?? coinType;
   return tail.toUpperCase();
 }
+
+/**
+ * Shorten the address portion of a coin type so long types fit on one line, keeping
+ * `::module::Name` intact. `0x2::sui::SUI` stays as-is; a 64-hex USDC address collapses
+ * to `0xa1ec7f…117e29::usdc::USDC`.
+ */
+export function shortCoinType(coinType: string): string {
+  const parts = coinType.split('::');
+  if (parts.length < 3) return coinType;
+  const [addr, ...rest] = parts;
+  const a = addr as string;
+  const shortAddr = a.length > 14 ? `${a.slice(0, 6)}…${a.slice(-4)}` : a;
+  return [shortAddr, ...rest].join('::');
+}

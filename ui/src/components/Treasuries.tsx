@@ -13,7 +13,10 @@ import {
   coinTypeFromTreasuryType,
   createTreasuryTx,
   depositTx,
+  formatAmount,
+  shortCoinType,
   shortId,
+  symbolFromCoinType,
 } from '../lib/conduit';
 import { countUp, DUR, EASE } from '../lib/animations';
 
@@ -132,30 +135,40 @@ function TreasuryRow({ capId, treasuryId }: { capId: string; treasuryId: string 
   const balance =
     typeof fundsField === 'object' ? (fundsField?.fields?.value ?? '0') : (fundsField ?? '0');
 
-  // Count the balance up from 0 → value (display only). Re-runs only when the balance
-  // actually changes (e.g. after a deposit), not on unrelated re-renders.
+  // Resolve the coin's real metadata so the balance renders with the right decimals
+  // and symbol (e.g. 10 USDC), not raw base units.
+  const meta = useSuiClientQuery('getCoinMetadata', { coinType }, { enabled: !!coinType });
+  const decimals = meta.data?.decimals ?? 0;
+  const symbol = meta.data?.symbol ?? (coinType ? symbolFromCoinType(coinType) : '');
+  const display = symbol ? `${formatAmount(balance, decimals)} ${symbol}` : formatAmount(balance, decimals);
+
+  // Count the real on-chain balance up to its formatted value (display only). Re-runs when
+  // the balance or the resolved decimals/symbol change — never on unrelated re-renders.
   useGSAP(
     () => {
       const el = balRef.current;
       if (!el) return;
+      const human = Number(BigInt(balance)) / 10 ** decimals;
+      const fmt = (n: number) =>
+        `${n.toLocaleString('en-US', { maximumFractionDigits: decimals })}${symbol ? ` ${symbol}` : ''}`;
       const mm = gsap.matchMedia();
       mm.add('(prefers-reduced-motion: no-preference)', () => {
-        countUp(el, Number(balance));
+        countUp(el, human, { format: fmt });
       });
       mm.add('(prefers-reduced-motion: reduce)', () => {
-        el.textContent = String(balance);
+        el.textContent = display;
       });
       return () => mm.revert();
     },
-    { scope: root, dependencies: [balance] },
+    { scope: root, dependencies: [balance, decimals, symbol] },
   );
 
   return (
     <div className="card" ref={root}>
       <h3>Treasury {shortId(treasuryId)}</h3>
-      <p className="muted mono">{coinType || '—'}</p>
+      <p className="muted mono" title={coinType}>{coinType ? shortCoinType(coinType) : '—'}</p>
       <p>
-        Balance: <strong ref={balRef}>{String(balance)}</strong>
+        Balance: <strong ref={balRef}>{display}</strong>
       </p>
       <DepositForm
         treasuryId={treasuryId}
