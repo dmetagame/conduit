@@ -4,17 +4,56 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
 import { PACKAGE_ID, walrusReceiptUrl } from '../config';
-import { decodeBlobId, shortId } from '../lib/conduit';
-import { countUp, DUR, EASE } from '../lib/animations';
+import {
+  coinTypeFromTreasuryType,
+  decodeBlobId,
+  formatAmount,
+  shortId,
+  symbolFromCoinType,
+} from '../lib/conduit';
+import { DUR, EASE } from '../lib/animations';
 
 gsap.registerPlugin(ScrollTrigger);
 
 interface PaymentExecuted {
+  treasury: string;
   payee: string;
   amount: string;
   // Sui renders a Move `vector<u8>` as a base64 string in parsedJson.
   walrus_blob_id: string | number[];
   timestamp_ms: string;
+}
+
+/** One settlement row. Resolves its treasury's coin metadata so the amount renders with decimals. */
+function FeedRow({ rowid, f }: { rowid: string; f: PaymentExecuted }) {
+  const treasury = useSuiClientQuery(
+    'getObject',
+    { id: f.treasury, options: { showType: true } },
+    { enabled: !!f.treasury },
+  );
+  const coinType = treasury.data?.data?.type
+    ? coinTypeFromTreasuryType(treasury.data.data.type)
+    : null;
+  const meta = useSuiClientQuery('getCoinMetadata', { coinType: coinType ?? '' }, { enabled: !!coinType });
+
+  const decimals = meta.data?.decimals ?? 0;
+  const symbol = meta.data?.symbol ?? (coinType ? symbolFromCoinType(coinType) : '');
+  const amount = formatAmount(f.amount, decimals);
+  const blobId = decodeBlobId(f.walrus_blob_id ?? '');
+  const when = new Date(Number(f.timestamp_ms)).toLocaleString();
+
+  return (
+    <li data-rowid={rowid}>
+      <span>
+        <strong className="feed-amount">{amount}</strong>{' '}
+        <span className="muted">{symbol}</span> → <span className="mono">{shortId(f.payee)}</span>
+      </span>
+      <span className="muted">{when}</span>
+      <a href={walrusReceiptUrl(blobId)} target="_blank" rel="noreferrer">
+        receipt ↗
+      </a>
+    </li>
+  );
 }
 
 export function PaymentsFeed() {
@@ -64,7 +103,7 @@ export function PaymentsFeed() {
           stagger,
           onComplete: () => ScrollTrigger.refresh(),
         });
-        // …with a brief accent pulse so live settlements feel alive…
+        // …with a brief accent pulse so live settlements feel alive.
         gsap.fromTo(
           fresh,
           { boxShadow: '0 0 0 0 rgba(76, 194, 255, 0)' },
@@ -78,11 +117,6 @@ export function PaymentsFeed() {
             clearProps: 'boxShadow',
           },
         );
-        // …and the amount counts up.
-        fresh.forEach((li) => {
-          const amt = li.querySelector<HTMLElement>('.feed-amount');
-          if (amt?.dataset.amount) countUp(amt, Number(amt.dataset.amount), { duration: DUR.base });
-        });
       });
 
       mm.add('(prefers-reduced-motion: reduce)', () => {
@@ -105,23 +139,8 @@ export function PaymentsFeed() {
       <ul className="feed">
         {events.data?.data.map((e) => {
           const f = e.parsedJson as PaymentExecuted;
-          const blobId = decodeBlobId(f.walrus_blob_id ?? '');
-          const when = new Date(Number(f.timestamp_ms)).toLocaleString();
           const rowid = `${e.id.txDigest}:${e.id.eventSeq}`;
-          return (
-            <li key={rowid} data-rowid={rowid}>
-              <span>
-                <strong className="feed-amount" data-amount={f.amount}>
-                  {f.amount}
-                </strong>{' '}
-                → <span className="mono">{shortId(f.payee)}</span>
-              </span>
-              <span className="muted">{when}</span>
-              <a href={walrusReceiptUrl(blobId)} target="_blank" rel="noreferrer">
-                receipt ↗
-              </a>
-            </li>
-          );
+          return <FeedRow key={rowid} rowid={rowid} f={f} />;
         })}
       </ul>
     </section>

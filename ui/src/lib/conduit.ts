@@ -77,3 +77,22 @@ export function coinTypeFromTreasuryType(type: string): string | null {
 export function shortId(id: string, n = 6): string {
   return id.length > 2 * n + 2 ? `${id.slice(0, n + 2)}…${id.slice(-n)}` : id;
 }
+
+/** Format a base-unit integer amount as a human decimal string, e.g. (10000000, 6) → "10". */
+export function formatAmount(raw: string | number | bigint, decimals: number): string {
+  const v = BigInt(raw);
+  if (decimals <= 0) return v.toLocaleString('en-US');
+  const base = 10n ** BigInt(decimals);
+  const whole = v / base;
+  const frac = v % base;
+  const wholeStr = whole.toLocaleString('en-US');
+  if (frac === 0n) return wholeStr;
+  const fracStr = frac.toString().padStart(decimals, '0').replace(/0+$/, '');
+  return `${wholeStr}.${fracStr}`;
+}
+
+/** Short symbol for a coin type when metadata is unavailable, e.g. `0x2::sui::SUI` → "SUI". */
+export function symbolFromCoinType(coinType: string): string {
+  const tail = coinType.split('::').pop() ?? coinType;
+  return tail.toUpperCase();
+}

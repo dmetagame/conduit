@@ -4,6 +4,7 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
 import { ConduitMark } from './Logo';
+import { ProofCard } from './ProofCard';
 import { DUR, EASE } from '../lib/animations';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -197,6 +198,7 @@ export function Landing() {
               View on GitHub →
             </a>
           </div>
+          <ProofCard />
         </div>
       </section>
 

@@ -16,7 +16,9 @@
 ![DeepBook](https://img.shields.io/badge/DeepBook-v3-4cc2ff)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
-**🔗 Live demo:** [conduit-ui-seven.vercel.app](https://conduit-ui-seven.vercel.app) · **Repo:** [github.com/dmetagame/conduit](https://github.com/dmetagame/conduit) · network: **Sui testnet** (connect a testnet wallet to author rules; the payments feed is public)
+**🔗 Live demo:** [conduit-ui-seven.vercel.app](https://conduit-ui-seven.vercel.app) · **Repo:** [github.com/dmetagame/conduit](https://github.com/dmetagame/conduit) · network: **Sui testnet** (the landing page shows the latest settled payout live; connect a wallet only to author rules)
+
+**👩‍⚖️ Judges:** start with **[docs/VERIFICATION.md](docs/VERIFICATION.md)** — verify the live settlement + Walrus receipt in 30 seconds, no wallet or install. See also [docs/DEEPBOOK_PROOF.md](docs/DEEPBOOK_PROOF.md) and [SECURITY_NOTES.md](SECURITY_NOTES.md).
 
 ---
 

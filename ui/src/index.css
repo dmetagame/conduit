@@ -128,18 +128,19 @@ footer { margin-top: 32px; }
 .logo {
   display: inline-flex;
   align-items: center;
-  gap: 0.5em;
+  gap: 0.45em;
   line-height: 1;
   font-family: var(--font-display);
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: -0.02em;
+  font-size: 1.08em;
 }
 .logo__mark { display: inline-flex; }
-.logo__word { font-family: var(--font-display); font-weight: 600; letter-spacing: -0.02em; }
+.logo__word { font-family: var(--font-display); font-weight: 700; letter-spacing: -0.02em; }
 .logo__char { display: inline-block; }
 .logo--gradient .logo__mark { color: var(--accent); }
 .logo--gradient .logo__word {
-  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  background: linear-gradient(90deg, #6fd0ff, #9b87ff);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -285,6 +286,60 @@ body { overflow-x: clip; } /* contain the full-bleed hero breakout */
   font-weight: 500;
 }
 .ghost-link:hover { color: var(--text); }
+
+/* Public, wallet-free proof of the latest real settlement. */
+.proof-card {
+  margin-top: 30px;
+  max-width: 440px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px 20px;
+  backdrop-filter: blur(6px);
+}
+.proof-card__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.proof-card__label .dot--live {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #2ecc71;
+}
+.proof-card__amount {
+  font-size: clamp(26px, 4vw, 34px);
+  font-weight: 500;
+  margin-top: 10px;
+  color: var(--text);
+}
+.proof-card__sym { color: var(--accent); font-size: 0.6em; margin-left: 2px; }
+.proof-card__meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+  font-size: 13px;
+}
+.proof-card__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+.proof-link { font-size: 13px; font-weight: 500; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .proof-card__label .dot--live { animation: conduit-pulse 2s ease-in-out infinite; }
+}
 
 .landing__how { padding: 8px 0; }
 .how-title { font-size: 22px; margin: 8px 0 18px; }

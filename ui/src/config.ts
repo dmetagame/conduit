@@ -10,3 +10,11 @@ export const WALRUS_AGGREGATOR =
 export function walrusReceiptUrl(blobId: string): string {
   return `${WALRUS_AGGREGATOR}/v1/blobs/${blobId}`;
 }
+
+export function suiscanTxUrl(digest: string): string {
+  return `https://suiscan.xyz/${NETWORK}/tx/${digest}`;
+}
+
+export function suiscanObjectUrl(id: string): string {
+  return `https://suiscan.xyz/${NETWORK}/object/${id}`;
+}
