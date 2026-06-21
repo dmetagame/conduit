@@ -20,6 +20,24 @@
 
 **👩‍⚖️ Judges:** start with **[docs/VERIFICATION.md](docs/VERIFICATION.md)** — verify the live settlement + Walrus receipt in 30 seconds, no wallet or install. See also [docs/DEEPBOOK_PROOF.md](docs/DEEPBOOK_PROOF.md) and [SECURITY_NOTES.md](SECURITY_NOTES.md).
 
+## Judge Quickstart
+
+Conduit is live on Sui testnet — the claims below are real and clickable, no wallet needed.
+
+- **Live app:** https://conduit-ui-seven.vercel.app/ (landing shows the latest settled payout, live)
+- **Real USDC settlement** (`execute_payout<…::usdc::USDC>`, 5 USDC): [tx `22kQEtEw…LHvV`](https://suiscan.xyz/testnet/tx/22kQEtEweY32xJ6cASatBToDoxqwJPaJXUoJhxpmLHvV) · [Walrus receipt](https://aggregator.walrus-testnet.walrus.space/v1/blobs/tuCmC-UUJMolOl3Q_c4WvJ2ceUzBtXalnyNf9VwTXFM)
+  - treasury `0x1e1a20c5…36b562` · rule `0x160b9306…ab4b61bf` · payee `0x224a0186…01c2b`
+
+Reproduce locally (exactly what CI runs):
+
+```bash
+sui move build && sui move test          # 3/3 pass against vendored DeepBook
+cd agent && npm ci && npm run build      # operator
+cd ../ui && npm ci && npm run build      # owner console
+```
+
+Full walkthrough + every id: [docs/VERIFICATION.md](docs/VERIFICATION.md).
+
 ---
 
 ## The problem
@@ -94,6 +112,8 @@ proven on-chain, not just intended.
 | Latest version (links live DeepBook) | `0x057871e0…8c680eb` |
 | **USDC settlement tx** (5 USDC, `execute_payout<USDC>`) | [`22kQEtEw…LHvV`](https://suiscan.xyz/testnet/tx/22kQEtEweY32xJ6cASatBToDoxqwJPaJXUoJhxpmLHvV) |
 | **USDC** treasury | [`0x1e1a20c5…36b562`](https://suiscan.xyz/testnet/object/0x1e1a20c5da4deb6c8f21c429cfb711e418c53a8fda04d607f3f18cd31936b562) |
+| USDC rule (one-shot, settled) | [`0x160b9306…ab4b61bf`](https://suiscan.xyz/testnet/object/0x160b9306970c0d3ba1a6141ef2346079c52c0b5ab15758425d1e8684ab4b61bf) |
+| USDC payee | [`0x224a0186…01c2b`](https://suiscan.xyz/testnet/account/0x224a01864a051987aaff606d7506becde1de380ecfd4a373095e18e9f8d01c2b) |
 | USDC Walrus receipt blob | [`tuCmC-UUJMolOl3Q_c4WvJ2ceUzBtXalnyNf9VwTXFM`](https://aggregator.walrus-testnet.walrus.space/v1/blobs/tuCmC-UUJMolOl3Q_c4WvJ2ceUzBtXalnyNf9VwTXFM) |
 | SUI settlement tx (settled by the cron) | [`74QQyXXw…id5dF`](https://suiscan.xyz/testnet/tx/74QQyXXw9MxfUvhEkex16PPVrJsJ8jRn6zCKsryid5dF) |
 | SUI treasury | [`0xb5e08e3e…8534626`](https://suiscan.xyz/testnet/object/0xb5e08e3e8d9cf7fb23ee29179f395b0868cf9957953e42ca0eca87ed68534626) |
