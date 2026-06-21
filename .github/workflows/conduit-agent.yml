@@ -22,6 +22,16 @@ jobs:
   settle:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    strategy:
+      # One signer key funds all settlements, so run treasuries serially — parallel
+      # txs from the same address would contend for the same gas coin and fail.
+      max-parallel: 1
+      fail-fast: false
+      matrix:
+        # Each treasury the operator settles. Add a line to cover more.
+        treasury:
+          - '0xb5e08e3e8d9cf7fb23ee29179f395b0868cf9957953e42ca0eca87ed68534626' # SUI
+          - '0x1e1a20c5da4deb6c8f21c429cfb711e418c53a8fda04d607f3f18cd31936b562' # USDC
     defaults:
       run:
         working-directory: agent
@@ -42,6 +52,6 @@ jobs:
           SUI_NETWORK: testnet
           # Public on-chain ids — safe to commit. The signer key is the only secret.
           CONDUIT_PACKAGE_ID: '0x1b4c89db10e2d5a6f97b56796d00de44e9b6dc4d49079547003fb82c1c829433'
-          CONDUIT_TREASURY_ID: '0xb5e08e3e8d9cf7fb23ee29179f395b0868cf9957953e42ca0eca87ed68534626'
+          CONDUIT_TREASURY_ID: ${{ matrix.treasury }}
           WALRUS_EPOCHS: '3'
           SUI_AGENT_SECRET_KEY: ${{ secrets.SUI_AGENT_SECRET_KEY }}
