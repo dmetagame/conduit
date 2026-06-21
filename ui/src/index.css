@@ -67,8 +67,13 @@ button, input { font-family: inherit; }
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: 1fr; /* phones: stack */
   gap: 12px;
+  align-items: start;
+}
+/* From small-tablet up, keep the treasury cards side by side (2-up). */
+@media (min-width: 520px) {
+  .grid { grid-template-columns: 1fr 1fr; }
 }
 
 .subform {
